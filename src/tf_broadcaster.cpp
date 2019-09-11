@@ -29,6 +29,7 @@
 
 //  Visualization Marker
 #include <visualization_msgs/Marker.h>
+#include <sensor_msgs/CameraInfo.h>
 
 #include <head_pose_estimator/HeadPose.h>
 #include <head_pose_estimator/FaceRect.h>
@@ -44,6 +45,7 @@ private:
   ros::Subscriber sub_head_pose_;
 
   ros::Publisher pub_marker_;
+  ros::Publisher pub_annotation_box_;
 
   tf::TransformBroadcaster br_;
   tf::TransformListener listener_;
@@ -69,6 +71,8 @@ public:
     sub_head_pose_ = nh_.subscribe("/head_pose_estimator/head_pose", 1, &TFBroadcaster::headPoseCallback, this);
 
     pub_marker_ = nh_.advertise<visualization_msgs::Marker>("/head_pose_estimator/marker", 10);
+
+    pub_annotation_box_ = nh_.advertise<sensor_msgs::CameraInfo>("/head_pose_estimator/annotation_box", 10);
 
     ROS_INFO("tf_broadcaster initialize OK");
   }
@@ -166,7 +170,26 @@ public:
         tf::Vector3(object_ave_pt.x,object_ave_pt.y,object_ave_pt.z)),
         ros::Time::now(),
         base_frame_name_,
-        "head"));}
+        "head_optical")
+      );
+
+      br_.sendTransform(
+        tf::StampedTransform(tf::Transform(tf::Quaternion(-msg.head_rotation.x, -msg.head_rotation.y, msg.head_rotation.z, msg.head_rotation.w), tf::Vector3(object_ave_pt.x,object_ave_pt.y,object_ave_pt.z)),
+        ros::Time::now(),
+        base_frame_name_,
+        "head")
+      );
+
+      br_.sendTransform(
+        tf::StampedTransform(tf::Transform(tf::Quaternion(0,1,0,1), tf::Vector3(0,0,0)),
+        ros::Time::now(),
+        "head_optical",
+        "head_annotation_box")
+      );
+
+
+
+    } //end if
 
       geometry_msgs::Pose pose;
       //pose.position = geometry_msgs::Point(object_ave_pt.x,object_ave_pt.y,object_ave_pt.z);
@@ -181,9 +204,28 @@ public:
       pose.orientation.w = msg.head_rotation.w;
 
       publishMarker(pose);
-
-
+      publishAnnotationBox();
   }//headPoseCallback
+
+  void publishAnnotationBox(){
+    sensor_msgs::CameraInfo annotation_box;
+
+    annotation_box.header = std_msgs::Header();
+    annotation_box.header.frame_id = "head_annotation_box";
+
+    annotation_box.height = 640;
+    annotation_box.width = 480;
+
+    annotation_box.distortion_model = "plumb_bob";
+
+    annotation_box.D = {0.0, 0.0, 0.0, 0.0, 0.0};
+    annotation_box.K = {570.3422241210938, 0.0, 319.5, 0.0, 570.3422241210938, 239.5, 0.0, 0.0, 1.0};
+    annotation_box.R = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+    annotation_box.P = {570.3422241210938, 0.0, 319.5, 0.0, 0.0, 570.3422241210938, 239.5, 0.0, 0.0, 0.0, 1.0, 0.0};
+
+    pub_annotation_box_.publish(annotation_box);
+
+  }//end publishAnnotationBox
 
   void publishMarker(geometry_msgs::Pose pose){
     visualization_msgs::Marker marker;
@@ -196,15 +238,15 @@ public:
     marker.action = visualization_msgs::Marker::ADD;
     marker.lifetime = ros::Duration();
 
-    marker.scale.x = 0.5;
+    marker.scale.x = 0.25;
     marker.scale.y = 0.05;
     marker.scale.z = 0.05;
 
     marker.pose.position = pose.position;
     marker.pose.orientation = pose.orientation;
 
-    marker.color.r = 0.0f;
-    marker.color.g = 1.0f;
+    marker.color.r = 1.0f;
+    marker.color.g = 0.0f;
     marker.color.b = 0.0f;
     marker.color.a = 1.0f;
 
