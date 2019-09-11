@@ -1,0 +1,19 @@
+<launch>
+    <group ns="head_pose_estimator" >
+        <param name="sub_img_name" type="str" value="/camera/rgb/image_raw" />
+        <param name="sub_cloud_name" type="str" value="/camera/depth/points" />
+        <param name="camera_frame_name" type="str" value="camera_depth_frame" />
+        <param name="base_frame_name" type="str" value="camera_depth_frame" />
+        <param name="process_ctrl" type="bool" value="True" />
+        <param name="show_result_img" type="bool" value="False" />
+        <param name="show_axis" type="bool" value="True" />
+        <param name="show_annotation_box" type="bool" value="True" />
+        <param name="pub_result_img" type="bool" value="True" />
+
+        <node pkg="head_pose_estimator" type="main.py" name="main" output="screen" />
+        <node pkg="head_pose_estimator" type="tf_broadcaster" name="tf_broadcaster" output="screen" />
+    </group>
+
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(find head_pose_estimator)/rviz/rviz.rviz" />
+
+</launch>

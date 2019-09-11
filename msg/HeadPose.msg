@@ -1,0 +1,2 @@
+head_pose_estimator/FaceRect face_rect
+geometry_msgs/Quaternion head_rotation
