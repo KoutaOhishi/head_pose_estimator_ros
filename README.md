@@ -2,8 +2,6 @@
 [head-pose-estimation](https://github.com/yinguobing/head-pose-estimation)をROSで使えるようにしたpackage。
 
 ![](/rviz_demo.gif)
-![](/demo.gif)
-
 
 ## Requirement
 - Ubuntu 16.04
