@@ -20,3 +20,6 @@
 ## Subscriptions
 
 ## Publications
+
+## License
+This project is licensed under the MIT License - see the [original repository](https://github.com/yinguobing/head-pose-estimation#license)
